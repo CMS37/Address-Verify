@@ -1,5 +1,4 @@
 function callApi(addresses) {
-	// 스크립트 속성에서 API 키 가져오기
 	var apiKey = PropertiesService.getScriptProperties().getProperty('API_KEY');
 	if (!apiKey) {
 	  Logger.log("API 키가 설정되어 있지 않습니다. 먼저 스크립트 속성에 API_KEY를 설정하세요.");
