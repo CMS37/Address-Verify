@@ -49,8 +49,25 @@ function updateSheetWithResponse(addresses, responseData) {
 		Logger.log("index: " + index);
 		Logger.log("item: " + JSON.stringify(item));
 		var rowIndex = addresses[index].rowIndex;
+		var isFail = false;
 		
 		if (!item.Matches || item.Matches.length === 0 || item.Matches[0].ID === "") {
+			isFail = true;
+		} else {
+			var match = item.Matches[0];
+		}
+
+		if (match.AQI === "E")
+			isFail = true;
+
+		if (match.AVC) {
+			var firstField = match.AVC.split("-")[0];
+
+			if (firstField && firstField.charAt(0) === "U") {
+				isFail = true;
+			}
+		}
+		if (isFail) {
 			sheet.getRange(rowIndex, 17).setValue(false);
 			sheet.getRange(rowIndex, 18).setValue("");
 		} else {
