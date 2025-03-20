@@ -57,13 +57,13 @@ function updateSheetWithResponse(addresses, responseData) {
 			var match = item.Matches[0];
 		}
 
-		if (match.AQI === "E")
-			isFail = true;
+		// if (match.AQI === "E")
+			// isFail = true;
 
 		if (match.AVC) {
 			var firstField = match.AVC.split("-")[0];
 
-			if (firstField && firstField.charAt(0) === "U") {
+			if (firstField && (firstField.charAt(0) === "U" || firstField.charAt(0) === "R")) {
 				isFail = true;
 			}
 		}
@@ -73,6 +73,8 @@ function updateSheetWithResponse(addresses, responseData) {
 		} else {
 			sheet.getRange(rowIndex, 17).setValue(true);
 			sheet.getRange(rowIndex, 18).setValue(item.Matches[0].Address);
+			sheet.getRange(rowIndex, 19).setValue(item.Matches[0].AQI);
+			sheet.getRange(rowIndex, 20).setValue(item.Matches[0].AVC);
 		}
 	});
 }
