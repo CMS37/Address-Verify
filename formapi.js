@@ -5,11 +5,8 @@
 		return;
 	}
 
-	// API 엔드포인트 (여기서는 Loqate의 Multi-Country Certify API 예시)
 	var baseUrl = "https://api.addressy.com/Cleansing/International/Batch/v1.00/json4.ws";
 
-	// 주소 객체 배열을 API 요청에 맞게 매핑합니다.
-	// 여기서는 나라, 주소(Street), 우편번호만 사용하며, city와 state는 빈 문자열("")로 전달
 	var requestData = addresses.map(function(address) {
 		return {
 			"Country": address.country,
