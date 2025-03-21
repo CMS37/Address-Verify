@@ -30,7 +30,8 @@ function onFormSubmit(e) {
 	}
 	
 	var ss = SpreadsheetApp.openById(destId);
-	var sheet = ss.getSheets()[0];
+	var sheet = ss.getSheets()[0]; //기록되고 있는 응답시트는 젤 첫번째에 있다고 가정
+	var fedexSheet = ss.getSheetByName("페덱스 양식");
 	var lastRow = sheet.getLastRow();
 
 	var addresses = [{
@@ -40,6 +41,11 @@ function onFormSubmit(e) {
 		"rowIndex": lastRow
 	}];
 
-	callFormApi(addresses, sheet);
+	var match = callFormApi(addresses, sheet);
+
+	if (match) {
+		Logger.log("페덱스 양식에 기록 시작");
+		Logger.log(match);
+		recordFedex(match, fedexSheet);
+	}
 }
-  

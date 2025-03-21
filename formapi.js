@@ -18,7 +18,10 @@
 	var payload = {
 		"Key": apiKey,
 		"Options": {
-		"Certify": true
+			"Certify": true,
+			"ServerOptions" : {
+				"OutputScript" : "EN"
+			}
 		},
 		"Addresses": requestData
 	};
@@ -35,7 +38,7 @@
 		var response = UrlFetchApp.fetch(baseUrl, options);
 		var responseData = JSON.parse(response.getContentText());
 		Logger.log("API 호출 성공, 응답: " + JSON.stringify(responseData));
-		updateSheetWithResponse(addresses, responseData, sheet);
+		return updateSheetWithResponse(addresses, responseData, sheet);
 	} catch (e) {
 		Logger.log("API 호출 중 오류 발생: " + e);
 	}
@@ -73,6 +76,7 @@ function updateSheetWithResponse(addresses, responseData, sheet) {
 		sheet.getRange(rowIndex, aqiCol).setValue(match.AQI);
 		sheet.getRange(rowIndex, avcCol).setValue(match.AVC);
 	}
+	return match;
 }
 
 function findOrCreateColumnByHeader(sheet, headerName) {
