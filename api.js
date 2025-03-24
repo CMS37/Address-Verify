@@ -22,6 +22,9 @@ function callApi(addresses, sheet) {
 		"Key": apiKey,
 		"Options": {
 			"Certify": true,
+			"ServerOptions": {
+				"OutputScript": "EN"
+			}
 		},
 		"Addresses": requestData
 	};
@@ -110,12 +113,13 @@ function updateSheetWithResponse(addresses, responseData, sheet) {
 }
 
 function findHeader(sheet, headerName) {
-	var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+	var lastCol = sheet.getLastColumn();
+	var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
 	var colIndex = headers.indexOf(headerName) + 1;
-
+	
 	if (colIndex === 0) {
-		colIndex = headers.length + 1;
-		sheet.getRange(1, colIndex).setValue(headerName);
+	  colIndex = headers.length + 1;
+	  sheet.getRange(1, colIndex).setValue(headerName);
 	}
 	return colIndex;
-}
+  }
