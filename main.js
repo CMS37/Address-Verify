@@ -1,40 +1,51 @@
 function main() {
-	var ss = SpreadsheetApp.getActiveSpreadsheet();
-	var sheet = ss.getActiveSheet();
+	var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 	var lastRow = sheet.getLastRow();
+	var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+	var countryCol = headers.indexOf("Your country of residence") + 1;
+	var addressCol = headers.indexOf("Street address") + 1;
+	var postalCol = headers.indexOf("Postal code") + 1;
+	var verifiedCol = findOrCreateColumnByHeader(sheet, "검증 주소"); 
+
+	if (countryCol === 0 || addressCol === 0 || postalCol === 0) {
+		Logger.log("필수 열을 찾을 수 없습니다.");
+		return;
+	}
 
 	var dataRange = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn());
 	var data = dataRange.getValues();
 
-	var addresses = [];
+	var targets = [];
 
 	for (var i = 0; i < data.length; i++) {
 		var row = data[i];
-		addresses.push({
-			country: row[6],
-			street: row[9],
-			city: row[12],
-			state: row[13],
-			postalCode: row[15],
-			rowIndex: i + 2
-		});
-	  }
-	callApi(addresses);
+
+		if (!row[verifiedCol - 1]) {
+			targets.push({
+				country: row[countryCol - 1],
+				address: row[addressCol - 1],
+				postalCode: row[postalCol - 1],
+				rowIndex: i + 2
+			});
+		}
+	}
+
+	if (targets.length === 0) {
+		Logger.log("검증할 주소가 없습니다.");
+		return;
+	}
+
+	callApi(targets, sheet);
 }
-  
-/*
-	검증을 빡세게 걸고 통과한걸 100%보장하는 대신 실패한것에 대해선 인력?
 
-	검증을 널널하게 걸면 자동완성된걸 100%보장 못함
+function findOrCreateColumnByHeader(sheet, headerName) {
+	var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+	var colIndex = headers.indexOf(headerName) + 1;
 
-	구글폼 제출시 외부 api검증에 따라 재작성 요청?
-	-> 사용자 입장에선 귀찮아서 재제출 안할 가능성 / 사용자가 잘못한게 아니라 api가 잘못한 경우 CS문제
-
-	실무를 하면서 검증단계를 조정해야함
-	최대한 100%를 보장하는 단계에서 실패하는 건에 대해서는 수동으로 처리?
-
-	추후 예외처리 추가 필요
-
-	최소한 필요한 데이터
-	나라 / 주소 / 주 / 우편번호
-*/
+	if (colIndex === 0) {
+		colIndex = headers.length + 1;
+		sheet.getRange(1, colIndex).setValue(headerName);
+	}
+	return colIndex;
+}
