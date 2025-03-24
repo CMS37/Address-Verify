@@ -1,16 +1,18 @@
 function recordFedex(match, fedexSheet) {
-
 	var headers = fedexSheet.getRange(1, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
 	var fedexRow = [];
 
+	Logger.log("페덱스 양식 추가 중...");
+	Logger.log("Match: " + JSON.stringify(match));
+	Logger.log("Headers: " + JSON.stringify(headers));
 	for (var i = 0; i < headers.length; i++) {
 		var header = headers[i].trim();
 		switch (header) {
 			case "Recipient Address Line 1* (35)":
-				fedexRow.push(match.Address1 || "");
+				fedexRow.push(match.Address1);
 				break;
 			case "Recipient Address Line 2* (35)":
-				fedexRow.push(match.Address2 || "");
+				fedexRow.push(match.Address2);
 				break;
 			case "Recipient Address Line 3 (35) ) - v13":
 				fedexRow.push("");

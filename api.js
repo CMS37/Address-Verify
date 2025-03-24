@@ -12,7 +12,9 @@ function callApi(addresses, sheet) {
 		return {
 			"Country": address.country,
 			"Address1": address.address,
-			"PostalCode": address.postalCode
+			"PostalCode": address.postalCode,
+			"Locality": address.city,
+			"AdministrativeArea": address.state
 		};
 	});
 
@@ -20,9 +22,6 @@ function callApi(addresses, sheet) {
 		"Key": apiKey,
 		"Options": {
 			"Certify": true,
-			"ServerOptions" : {
-				"OutputScript" : "EN"
-			}
 		},
 		"Addresses": requestData
 	};
@@ -53,25 +52,19 @@ function updateSheetWithResponse(addresses, responseData, sheet) {
 		return;
 	}
 
-	var addressCol = findOrCreateColumnByHeader(sheet, "검증 주소");
-	var aqiCol = findOrCreateColumnByHeader(sheet, "AQI");
-	var avcCol = findOrCreateColumnByHeader(sheet, "AVC");
+	var addressCol = findHeader(sheet, "검증 주소");
 
 	var lastRow = sheet.getLastRow();
 	var numRows = lastRow - 1;
 
 	var addrRange = sheet.getRange(2, addressCol, numRows, 1);
-	var aqiRange = sheet.getRange(2, aqiCol, numRows, 1);
-	var avcRange = sheet.getRange(2, avcCol, numRows, 1);
 
 	var addrData = addrRange.getValues();
-	var aqiData = aqiRange.getValues();
-	var avcData = avcRange.getValues();
 
-	var fedexSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("페덱스 양식");
+	var fedexSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("페덱스");
 
 	if (!fedexSheet) {
-		Logger.log("페덱스 양식 시트를 찾을 수 없습니다.");
+		Logger.log("페덱스 시트를 찾을 수 없습니다.");
 	}
 
 	for (var i = 0; i < responseData.length; i++) {
@@ -102,21 +95,27 @@ function updateSheetWithResponse(addresses, responseData, sheet) {
 
 		if (isFail || !match) {
 			addrData[listIndex][0] = "Fail";
-			aqiData[listIndex][0] = match ? (match.AQI || "") : "";
-			avcData[listIndex][0] = match ? (match.AVC || "") : "";
+			Logger.log("주소 검증 실패");
+			Logger.log("Match: " + JSON.stringify(match));
+
 		} else {
 			addrData[listIndex][0] = match.Address;
-			aqiData[listIndex][0] = match.AQI;
-			avcData[listIndex][0] = match.AVC;
 
 			if (fedexSheet) {
-				recordToFedexSheet(match, sheet, rowIndex, fedexSheet);
+				recordFedex(match, sheet, rowIndex, fedexSheet);
 			}
 		}
 	}
-
-	// 수정된 데이터 배열을 한 번에 시트에 반영
 	addrRange.setValues(addrData);
-	aqiRange.setValues(aqiData);
-	avcRange.setValues(avcData);
+}
+
+function findHeader(sheet, headerName) {
+	var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+	var colIndex = headers.indexOf(headerName) + 1;
+
+	if (colIndex === 0) {
+		colIndex = headers.length + 1;
+		sheet.getRange(1, colIndex).setValue(headerName);
+	}
+	return colIndex;
 }
