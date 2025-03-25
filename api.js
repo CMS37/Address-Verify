@@ -23,7 +23,7 @@ function callApi(addresses, sheet) {
 		"Options": {
 			"Certify": true,
 			"ServerOptions": {
-				"OutputScript": "EN"
+				// "OutputScript": "Latn" 모든주소를 라틴문자로 변환 -> 이는 영어로 변환하는 것과 정확히 동일? -> 영문으로 정확히 변환하는 api가 따로있어 확실하지않음
 			}
 		},
 		"Addresses": requestData
@@ -74,7 +74,8 @@ function updateSheetWithResponse(addresses, responseData, sheet) {
 		var item = responseData[i];
 		var addrMeta = addresses[i];
 
-		if (!addrMeta) continue;
+		if (!addrMeta)
+			continue;
 		
 		var rowIndex = addrMeta.rowIndex;
 		var listIndex = rowIndex - 2;
@@ -118,8 +119,8 @@ function findHeader(sheet, headerName) {
 	var colIndex = headers.indexOf(headerName) + 1;
 	
 	if (colIndex === 0) {
-	  colIndex = headers.length + 1;
-	  sheet.getRange(1, colIndex).setValue(headerName);
+		colIndex = headers.length + 1;
+		sheet.getRange(1, colIndex).setValue(headerName);
 	}
 	return colIndex;
   }

@@ -12,11 +12,11 @@ function onFormSubmit(e) {
 		var response = itemResponse.getResponse();
 	  
 		if (title === "Your Country") {
-		country = response;
+			country = response;
 		} else if (title === "Address") {
-		address = response;
+			address = response;
 		} else if (title === "Postal code") {
-		postalCode = response;
+			postalCode = response;
 		}
 	}
 	Logger.log("Country: " + country);
