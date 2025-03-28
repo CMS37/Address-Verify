@@ -1,7 +1,7 @@
 function getFedExOAuthToken() {
 	var grantType = "client_credentials"
-	var clientId = "YOUR_CLIENT_ID";
-	var clientSecret = "YOUR_CLIENT_SECRET";
+	var clientId = "l76a1ebbb09f1d49578b302edc7f078bdc";
+	var clientSecret = "08f25cca4ca64981a528c6307d4b3a76";
 
 	var tokenUrl = "https://apis-sandbox.fedex.com/oauth/token";
 
@@ -20,7 +20,7 @@ function getFedExOAuthToken() {
 	  var tokenData = JSON.parse(response.getContentText());
 	  return tokenData;
 	} catch (e) {
-	  Logger.log("FedEx OAuth 토큰 발급 중 오류 발생: " + e);
+	  log("FedEx OAuth 토큰 발급 중 오류 발생: " + e);
 	  return null;
 	}
 }
@@ -30,7 +30,7 @@ function validataShipment(accessToken) {
 	var fedexSheet = ss.getSheetByName("페덱스");
 
 	if (!fedexSheet) {
-		Logger.log("페덱스 시트를 찾을 수 없습니다.");
+		log("페덱스 시트를 찾을 수 없습니다.");
 		return null;
 	}
 
@@ -42,107 +42,234 @@ function validataShipment(accessToken) {
 		fedexData[headers[i].trim()] = data[i];
 	}
 	if (!fedexData) {
-		Logger.log("페덱스 데이터가 없습니다.");
+		log("페덱스 데이터가 없습니다.");
 		return null;
 	}
 
-	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
+	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
+	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+
 
 	var payload = {
+		"mergeLabelDocOption": "LABELS_AND_DOCS",
+		"labelResponseOptions": "URL_ONLY",
 		"requestedShipment": {
-			"shipper": { //발송인 정보 추후 추가 데이터 필요한 곳
-				"contact": {
-					"personName": "TEST_Sender_Name",
-					"phoneNumber": "9012704839",
-					"companyName": "TEST_APISENDER-WSXI6000"
-				},
-				"address": {
-					"city": "Seoul",
-					"stateOrProvinceCode": "KR",
-					"postalCode": "05224",
-					"countryCode": "KR",
-					"residential": false,
-					"streetLines": [
-						"TEST_Sender_Address_Line1",
-						"TEST_Sender_Address_Line2"
-					]
-				}
+		  "shipDatestamp": "2025-03-28",
+		  "pickupType": "USE_SCHEDULED_PICKUP",
+		  "serviceType": "FEDEX_INTERNATIONAL_PRIORITY",
+		  "packagingType": "YOUR_PACKAGING",
+		  "totalWeight": 31,
+		  "shipper": {
+			"address": {
+			  "streetLines": [
+				"SENDER_ADD_1",
+				"SENDER_ADD_2"
+			  ],
+			  "city": "Sasdfeoul-Si",
+			  "stateOrProvinceCode": "",
+			  "postalCode": "04027",
+			  "countryCode": "KR",
+			  "residential": false
 			},
-			"recipients": [{ //수취인 정보 페덱스시트지에서 추출 가능
-				"contact": {
-					"personName": fedexData["Recipient Contact Name* (35)"] || "TEST_Recipient_Name",
-					"phoneNumber": fedexData["Receipient Tel #* (15)"] || "9018549266",
-					"companyName": fedexData["Recipient Company Name (35)"] || "TEST_APIRECIPIENT-WSXI6000"
-				},
-				"address": {
-					"city": fedexData["Recipient City* (35)"] || "PITTSBURGH",
-					"stateOrProvinceCode": fedexData["State code"] || "PA",
-					"postalCode": fedexData["Recipient Zip Code* (10)"] || "15220",
-					"countryCode": fedexData["Recipient Country Code* (2)"] || "US",
-					"residential": true,
-					"streetLines": [
-					fedexData["Recipient Address Line 1* (35)"] || "45 NOBLESTOWN RD",
-					fedexData["Recipient Address Line 2* (35)"] || ""
-					]
-				}
+			"contact": {
+			  "personName": "SENDER_CONTACT_NAME",
+			  "emailAddress": "test@test.com",
+			  "phoneExtension": "",
+			  "phoneNumber": "1234567890",
+			  "companyName": "SENDER_COMPANY_NAME"
+			},
+			"tins": [{
+			  "number": "KR123456789012(16)",
+			  "tinType": "BUSINESS_UNION"
+			}]
+		  },
+		  "recipients": [{
+			"address": {
+			  "streetLines": [
+				fedexData["Recipient Address Line 1* (35)"] || "RECIPIENT_ADD_1",
+				fedexData["Recipient Address Line 2* (35)"] || "RECIPIENT_ADD_2",
+				fedexData["Recipient Address Line 3 (35) ) - v13"] || "RECIPIENT_ADD_3"
+			  ],
+			  "city": fedexData["Recipient City* (35)"] || "new york",
+			  "stateOrProvinceCode": fedexData["State code"] || "NY",
+			  "postalCode": fedexData["Recipient Zip Code* (10)"] || "10001",
+			  "countryCode": fedexData["Recipient Country Code* (2)"] || "US",
+			  "residential": false
+			},
+			"contact": {
+			  "personName": fedexData["Recipient Contact Name* (35)"] || "RECEIVER_CONTACT_NAME",
+			  "emailAddress": fedexData["Recipient Email (60)"] || "Crisauravasquez@gmail.ocm",
+			  "phoneExtension": "",
+			  "phoneNumber": fedexData["Receipient Tel #* (15)"] || "1234567890",
+			  "companyName": fedexData["Recipient Company Name (35)"] || "RECEIVER_COMPANY_NAME"
+			},
+			"tins": [{
+			  "number": "KR123456789012(16)",
+			  "tinType": "BUSINESS_UNION"
 			}],
-			"shipDatestamp": "2022-11-07", //배송 날짜 (필수x)
-			"pickupType": "DROPOFF_AT_FEDEX_LOCATION", //픽업 유형 (???)
-			"serviceType": "FEDEX_INTERNATIONAL_PRIORITY_EXPRESS", // 서비스 유형 (FedEx International Priority end-of-day = ?)
-			"packagingType": "YOUR_PACKAGING", // 패키지 유형 (자사패키징 사용)
-			"blockInsightVisibility": false, // ?
-			"shippingChargesPayment": { //지불인 사양?
-				"paymentType": "SENDER"
-			},
-			"labelSpecification": { // 라벨 스펙
-				"imageType": "PDF",
-				"labelStockType": "PAPER_7X475"
-			},
-			"requestedPackageLineItems": [ //패키지별 중량
-			  {
-				"weight": {
-					"units": "LB",
-					"value": fedexData["Shipment Weight* (13)"] || "50"
+			"deliveryInstructions": "DELIVERY INSTRUCTIONS"
+		  }],
+		  "shippingChargesPayment": {
+			"paymentType": "SENDER",
+			"payor": {
+			  "responsibleParty": {
+				"accountNumber": {
+				  "value": "*********"
 				}
 			  }
+			}
+		  },
+		  "shipmentSpecialServices": {
+			"specialServiceTypes": [
+			  "ELECTRONIC_TRADE_DOCUMENTS"
 			],
-			"customsClearanceDetail": { //통관 정보
-				"totalCustomsValue": {
+			"etdDetail": {
+			  "requestedDocumentTypes": [
+				"COMMERCIAL_INVOICE"
+			  ]
+			}
+		  },
+		  "customsClearanceDetail": {
+			"commercialInvoice": {
+			  "originatorName": "originator Name",
+			  "comments": [
+				"optional comments for the commercial invoice"
+			  ],
+			  "customerReferences": [{
+				"customerReferenceType": "DEPARTMENT_NUMBER",
+				"value": "3686"
+			  }],
+			  "freightCharge": {
 				"amount": 12.45,
 				"currency": "USD"
-				}
+			  },
+			  "packingCosts": {
+				"amount": 12.45,
+				"currency": "USD"
+			  },
+			  "handlingCosts": {
+				"amount": 12.45,
+				"currency": "USD"
+			  },
+			  "termsOfSale": "FCA",
+			  "specialInstructions": "specialInstructions",
+			  "shipmentPurpose": "REPAIR_AND_RETURN"
 			},
+			"dutiesPayment": {
+			  "payor": {
+				"responsibleParty": {
+				  "accountNumber": {
+					"value": "123456789"
+				  }
+				}
+			  },
+			  "paymentType": "SENDER"
+			},
+			"commodities": [{
+			  "quantity": 2,
+			  "quantityUnits": "EA",
+			  "countryOfManufacture": "KR",
+			  "description": "Product1",
+			  "weight": {
+				"units": "KG",
+				"value": 16
+			  },
+			  "unitPrice": {
+				"amount": 7,
+				"currency": "USD"
+			  }
+			},
+			{
+			  "quantity": 3,
+			  "quantityUnits": "EA",
+			  "countryOfManufacture": "KR",
+			  "description": "Product2",
+			  "weight": {
+				"units": "KG",
+				"value": 15
+			  },
+			  "unitPrice": {
+				"amount": 4,
+				"currency": "USD"
+			  }
+			}],
+			"isDocumentOnly": false,
+			"totalCustomsValue": {
+			  "amount": 26,
+			  "currency": "USD"
+			}
 		  },
-		  "accountNumber": {
-			"value": "740561073"
-		  }
+		  "labelSpecification": {
+			"labelFormatType": "COMMON2D",
+			"labelStockType": "STOCK_4X675_TRAILING_DOC_TAB",
+			"imageType": "ZPLII"
+		  },
+		  "shippingDocumentSpecification": {
+			"shippingDocumentTypes": [
+			  "COMMERCIAL_INVOICE"
+			],
+			"commercialInvoiceDetail": {
+			  "customerImageUsages": [{
+				"id": "IMAGE_1",
+				"type": "LETTER_HEAD",
+				"providedImageType": "LETTER_HEAD"
+			  },
+			  {
+				"id": "IMAGE_2",
+				"type": "SIGNATURE",
+				"providedImageType": "SIGNATURE"
+			  }],
+			  "documentFormat": {
+				"provideInstructions": true,
+				"stockType": "PAPER_LETTER",
+				"locale": "en_US",
+				"docType": "PDF"
+			  }
+			}
+		  },
+		  "preferredCurrency": "USD",
+		  "requestedPackageLineItems": [{
+			"groupPackageCount": 1,
+			"customerReferences": [{
+			  "customerReferenceType": "INVOICE_NUMBER",
+			  "value": "INV_NUM_IN_LABEL"
+			},
+			{
+			  "customerReferenceType": "CUSTOMER_REFERENCE",
+			  "value": "REFERENCE_IN_LABEL"
+			}],
+			"weight": {
+			  "units": "KG",
+			  "value": fedexData["Shipment Weight* (13)"] || 31.0
+			}
+		  }]
+		},
+		"accountNumber": {
+		  "value": "877459284"
+		}
 	};
+	  
 
 	var options = {
 		"method": "post",
-		"conteType": "application/json",
+		"contentType": "application/json",
 		"headers": {
-			"Content-Type": "application/json",
-			"Authorization": "Bearer " + accessToken,
-			"X-locale" : "ko-KR",
-			"x-customer-transaction-id": "VT250325GW001" // 고객번호?
+		  "Content-Type": "application/json",
+		  "Authorization": "Bearer " + accessToken,
+		  "X-locale": "en_US"
 		},
 		"payload": JSON.stringify(payload),
 		"muteHttpExceptions": true
 	};
+	  
 	
 	try {
 		var response = UrlFetchApp.fetch(shipmentUrl, options);
 		var responseData = JSON.parse(response.getContentText());
 
-		Logger.log ("Validate Shipment Data 성공");
-		Logger.log(responseData);
-
 		return responseData;
 	} catch (e) {
-		Logger.log("Validate Shipment Data 실패");
-		Logger.log(e);
-
+		log(e);
 		return null;
 	}
 }
