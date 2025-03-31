@@ -7,16 +7,18 @@ function getBody(fedexData, accessToken) {
 		"mergeLabelDocOption": "LABELS_AND_DOCS",
 		"labelResponseOptions": "URL_ONLY",
 		"requestedShipment": {
-		  "shipDatestamp": "2025-03-28",
+		  "shipDatestamp": "2025-03-31", // 배송날짜 현재 날짜보다 전이면 오류 발생 
 		  "pickupType": "USE_SCHEDULED_PICKUP",
 		  "serviceType": "FEDEX_INTERNATIONAL_PRIORITY",
 		  "packagingType": "YOUR_PACKAGING",
-		  "totalWeight": 31,
+		  "totalWeight": fedexData["Shipment Weight* (13)"],
+
+		  // 발송인 정보란
 		  "shipper": {
-			"address": {
+			"address": { // 발송인 주소 채워 넣기
 			  "streetLines": [
 				"SENDER_ADD_1",
-				"SENDER_ADD_2"
+				"SENDER_ADD_2" 
 			  ],
 			  "city": "Sasdfeoul-Si",
 			  "stateOrProvinceCode": "",
@@ -24,57 +26,62 @@ function getBody(fedexData, accessToken) {
 			  "countryCode": "KR",
 			  "residential": false
 			},
-			"contact": {
+			"contact": { // 발송인 정보 채워 넣기
 			  "personName": "SENDER_CONTACT_NAME",
-			  "emailAddress": "test@test.com",
+			  "emailAddress": "testtest",
 			  "phoneExtension": "",
 			  "phoneNumber": "1234567890",
 			  "companyName": "SENDER_COMPANY_NAME"
 			},
-			"tins": [{
+			"tins": [{ // 발송인 세금 정보?
 			  "number": "KR123456789012(16)",
 			  "tinType": "BUSINESS_UNION"
 			}]
 		  },
+
+		  // 수신인 정보란
 		  "recipients": [{
 			"address": {
 			  "streetLines": [
-				fedexData["Recipient Address Line 1* (35)"] || "RECIPIENT_ADD_1",
-				fedexData["Recipient Address Line 2* (35)"] || "RECIPIENT_ADD_2",
-				fedexData["Recipient Address Line 3 (35) ) - v13"] || "RECIPIENT_ADD_3"
+				fedexData["Recipient Address Line 1* (35)"],
+				fedexData["Recipient Address Line 2* (35)"],
+				fedexData["Recipient Address Line 3 (35) ) - v13"]
 			  ],
-			  "city": fedexData["Recipient City* (35)"] || "new york",
-			  "stateOrProvinceCode": fedexData["State code"] || "NY",
-			  "postalCode": fedexData["Recipient Zip Code* (10)"] || "10001",
-			  "countryCode": fedexData["Recipient Country Code* (2)"] || "US",
+			  "city": fedexData["Recipient City* (35)"],
+			  "stateOrProvinceCode": fedexData["State code"],
+			  "postalCode": fedexData["Recipient Zip Code* (10)"],
+			  "countryCode": fedexData["Recipient Country Code* (2)"],
 			  "residential": false
 			},
 			"contact": {
-			  "personName": fedexData["Recipient Contact Name* (35)"] || "RECEIVER_CONTACT_NAME",
-			  "emailAddress": fedexData["Recipient Email (60)"] || "Crisauravasquez@gmail.ocm",
+			  "personName": fedexData["Recipient Contact Name* (35)"],
+			  "emailAddress": fedexData["Recipient Email (60)"],
 			  "phoneExtension": "",
-			  "phoneNumber": fedexData["Receipient Tel #* (15)"] || "1234567890",
-			  "companyName": fedexData["Recipient Company Name (35)"] || "RECEIVER_COMPANY_NAME"
+			  "phoneNumber": fedexData["Receipient Tel #* (15)"],
+			  "companyName": fedexData["Recipient Company Name (35)"]
 			},
-			"tins": [{
+			"tins": [{ // 수신인 세금 정보?
 			  "number": "KR123456789012(16)",
 			  "tinType": "BUSINESS_UNION"
 			}],
-			"deliveryInstructions": "DELIVERY INSTRUCTIONS"
+			"deliveryInstructions": "DELIVERY INSTRUCTIONS" // 수신인 배송지시사항
 		  }],
+
+		  // 배송비 결제 정보
 		  "shippingChargesPayment": {
-			"paymentType": "SENDER",
+			"paymentType": "SENDER", 
 			"payor": {
 			  "responsibleParty": {
 				"accountNumber": {
-				  "value": "*********"
+				  "value": "740561073" // 발송인 계정?계좌? 번호 입력
 				}
 			  }
 			}
 		  },
+		  // 배송특별서비스 -> 페덱스 송장 자동 생성 
 		  "shipmentSpecialServices": {
 			"specialServiceTypes": [
-			  "ELECTRONIC_TRADE_DOCUMENTS"
+			  "ELECTRONIC_TRADE_DOCUMENTS"  
 			],
 			"etdDetail": {
 			  "requestedDocumentTypes": [
@@ -82,6 +89,8 @@ function getBody(fedexData, accessToken) {
 			  ]
 			}
 		  },
+
+		  // 배송물품 정보란
 		  "customsClearanceDetail": {
 			"commercialInvoice": {
 			  "originatorName": "originator Name",
@@ -112,7 +121,7 @@ function getBody(fedexData, accessToken) {
 			  "payor": {
 				"responsibleParty": {
 				  "accountNumber": {
-					"value": "123456789"
+					"value": "740561073"
 				  }
 				}
 			  },
@@ -152,11 +161,15 @@ function getBody(fedexData, accessToken) {
 			  "currency": "USD"
 			}
 		  },
+
+		  // 라벨 정보
 		  "labelSpecification": {
 			"labelFormatType": "COMMON2D",
 			"labelStockType": "STOCK_4X675_TRAILING_DOC_TAB",
 			"imageType": "ZPLII"
 		  },
+
+		  // ?
 		  "shippingDocumentSpecification": {
 			"shippingDocumentTypes": [
 			  "COMMERCIAL_INVOICE"
@@ -180,8 +193,10 @@ function getBody(fedexData, accessToken) {
 			  }
 			}
 		  },
-			"preferredCurrency": "USD",
-			"requestedPackageLineItems": [{
+			"preferredCurrency": "USD", // 통화
+
+			// 배송물품 정보란
+			"requestedPackageLineItems": [{ 
 				"groupPackageCount": 1,
 				"customerReferences": [{
 					"customerReferenceType": "INVOICE_NUMBER",
@@ -193,10 +208,11 @@ function getBody(fedexData, accessToken) {
 				}],
 			"weight": {
 				"units": "KG",
-				"value": fedexData["Shipment Weight* (13)"] || 31.0
+				"value": fedexData["Shipment Weight* (13)"]
 			}
 		  }]
 		},
+		// 고객번호
 		"accountNumber": {
 			"value": "740561073"
 		}

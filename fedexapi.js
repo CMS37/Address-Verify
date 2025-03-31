@@ -1,7 +1,7 @@
 function getFedExOAuthToken() {
 	var grantType = "client_credentials"
-	var clientId = "l76a1ebbb09f1d49578b302edc7f078bdc";
-	var clientSecret = "08f25cca4ca64981a528c6307d4b3a76";
+	var clientId = "l7b543253d524c449e8588a7c12941a57d";
+	var clientSecret = "b37fd2fa1c9147b0a277a339cfb227ac";
 
 	var tokenUrl = "https://apis-sandbox.fedex.com/oauth/token";
 
@@ -46,13 +46,15 @@ function validataShipment(accessToken) {
 		return null;
 	}
 
-	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
-	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+	// 배송검증 api
+	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
+
+	// 배송 api
+	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
 
 
 	var body = getBody(fedexData, accessToken);
-	  
-	
+
 	try {
 		var response = UrlFetchApp.fetch(shipmentUrl, body);
 		var responseData = JSON.parse(response.getContentText());

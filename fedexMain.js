@@ -7,7 +7,6 @@ function fedex() {
 	}
 
 	log("FedEx OAuth 토큰 발급 성공");
-	log("Token: " + tokenData.access_token);
 
 	var responseData = validataShipment(tokenData.access_token);
 
@@ -18,5 +17,4 @@ function fedex() {
 
 	log("FedEx 통합 배송 정보 조회 성공");
 	log(responseData);
-
 }
