@@ -3,11 +3,15 @@ function log(string) {
 }
 
 function getBody(fedexData, accessToken) {
+
+	// 현재 날짜를 YYYY-MM-DD 형식으로 가져오기 -> 배송날짜 기입용
+	var date = new Date().toISOString().slice(0, 10);
+
 	var payload = {
 		"mergeLabelDocOption": "LABELS_AND_DOCS",
 		"labelResponseOptions": "URL_ONLY",
 		"requestedShipment": {
-		  "shipDatestamp": "2025-03-31", // 배송날짜 현재 날짜보다 전이면 오류 발생 
+		  "shipDatestamp": date,
 		  "pickupType": "USE_SCHEDULED_PICKUP",
 		  "serviceType": "FEDEX_INTERNATIONAL_PRIORITY",
 		  "packagingType": "YOUR_PACKAGING",
@@ -90,33 +94,35 @@ function getBody(fedexData, accessToken) {
 			}
 		  },
 
-		  // 배송물품 정보란
+		  // 배송물품 정보란 필수
 		  "customsClearanceDetail": {
-			"commercialInvoice": {
-			  "originatorName": "originator Name",
-			  "comments": [
-				"optional comments for the commercial invoice"
-			  ],
-			  "customerReferences": [{
-				"customerReferenceType": "DEPARTMENT_NUMBER",
-				"value": "3686"
-			  }],
-			  "freightCharge": {
-				"amount": 12.45,
-				"currency": "USD"
-			  },
-			  "packingCosts": {
-				"amount": 12.45,
-				"currency": "USD"
-			  },
-			  "handlingCosts": {
-				"amount": 12.45,
-				"currency": "USD"
-			  },
-			  "termsOfSale": "FCA",
-			  "specialInstructions": "specialInstructions",
-			  "shipmentPurpose": "REPAIR_AND_RETURN"
-			},
+
+			// 송장정보인데 페덱스 자동생성해줘서 필요 x
+			// "commercialInvoice": {
+			//   "originatorName": "originator Name",
+			//   "comments": [
+			// 	"optional comments for the commercial invoice"
+			//   ],
+			//   "customerReferences": [{
+			// 	"customerReferenceType": "DEPARTMENT_NUMBER",
+			// 	"value": "3686"
+			//   }],
+			//   "freightCharge": {
+			// 	"amount": 12.45,
+			// 	"currency": "USD"
+			//   },
+			//   "packingCosts": {
+			// 	"amount": 12.45,
+			// 	"currency": "USD"
+			//   },
+			//   "handlingCosts": {
+			// 	"amount": 12.45,
+			// 	"currency": "USD"
+			//   },
+			//   "termsOfSale": "FCA",
+			//   "specialInstructions": "specialInstructions",
+			//   "shipmentPurpose": "REPAIR_AND_RETURN"
+			// },
 			"dutiesPayment": {
 			  "payor": {
 				"responsibleParty": {
@@ -128,36 +134,37 @@ function getBody(fedexData, accessToken) {
 			  "paymentType": "SENDER"
 			},
 			"commodities": [{
-			  "quantity": 2,
+			  "quantity": 1,
 			  "quantityUnits": "EA",
 			  "countryOfManufacture": "KR",
-			  "description": "Product1",
+			  "description": fedexData["Product Description* (148)"],
 			  "weight": {
 				"units": "KG",
-				"value": 16
+				"value": fedexData["Commodity Unit Weight (16)"]
 			  },
 			  "unitPrice": {
-				"amount": 7,
+				"amount": fedexData["Unit Value* (15)"], 
 				"currency": "USD"
 			  }
 			},
-			{
-			  "quantity": 3,
-			  "quantityUnits": "EA",
-			  "countryOfManufacture": "KR",
-			  "description": "Product2",
-			  "weight": {
-				"units": "KG",
-				"value": 15
-			  },
-			  "unitPrice": {
-				"amount": 4,
-				"currency": "USD"
-			  }
-			}],
+			// { // 추가 물품 추후 방식 논의
+			//   "quantity": 1,
+			//   "quantityUnits": "EA",
+			//   "countryOfManufacture": "KR",
+			//   "description": "Global_OL_Silicone pack brush_1ea",
+			//   "weight": {
+			// 	"units": "KG",
+			// 	"value": 0.04
+			//   },
+			//   "unitPrice": {
+			// 	"amount": 2.5,
+			// 	"currency": "USD"
+			//   }
+			// }
+			],
 			"isDocumentOnly": false,
 			"totalCustomsValue": {
-			  "amount": 26,
+			  "amount": 12,
 			  "currency": "USD"
 			}
 		  },
@@ -169,7 +176,7 @@ function getBody(fedexData, accessToken) {
 			"imageType": "ZPLII"
 		  },
 
-		  // ?
+		// 배송문서 추가 정보 필요하면 추가하는곳
 		  "shippingDocumentSpecification": {
 			"shippingDocumentTypes": [
 			  "COMMERCIAL_INVOICE"
@@ -195,7 +202,7 @@ function getBody(fedexData, accessToken) {
 		  },
 			"preferredCurrency": "USD", // 통화
 
-			// 배송물품 정보란
+			// 배송물품패키지 정보란
 			"requestedPackageLineItems": [{ 
 				"groupPackageCount": 1,
 				"customerReferences": [{

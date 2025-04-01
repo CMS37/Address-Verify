@@ -23,7 +23,7 @@ function callApi(addresses, sheet) {
 		"Options": {
 			"Certify": true,
 			"ServerOptions": {
-				// "OutputScript": "Latn" 모든주소를 라틴문자로 변환 -> 이는 영어로 변환하는 것과 정확히 동일? -> 영문으로 정확히 변환하는 api가 따로있어 확실하지않음
+				// "OutputScript": "Latn"
 			}
 		},
 		"Addresses": requestData
