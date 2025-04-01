@@ -7,7 +7,7 @@ function main() {
 	var addressCol = headers.indexOf("Street address") + 1;
 	var postalCol = headers.indexOf("Postal code") + 1;
 	var cityCol = headers.indexOf("City") + 1;
-	var stateCol = headers.indexOf("State / Povince ") + 1;
+	var stateCol = headers.indexOf("State / Povince") + 1;
 
 	if (countryCol === 0 || addressCol === 0 || postalCol === 0) {
 		Logger.log("필수 열을 찾을 수 없습니다.");
