@@ -10,18 +10,18 @@ function getFedExOAuthToken() {
 				  "&client_secret=" + encodeURIComponent(clientSecret);
 	
 	var options = {
-	  "method": "post",
-	  "contentType": "application/x-www-form-urlencoded",
-	  "payload": payload
+		"method": "post",
+		"contentType": "application/x-www-form-urlencoded",
+		"payload": payload
 	};
 	
 	try {
-	  var response = UrlFetchApp.fetch(tokenUrl, options);
-	  var tokenData = JSON.parse(response.getContentText());
-	  return tokenData;
+		var response = UrlFetchApp.fetch(tokenUrl, options);
+		var tokenData = JSON.parse(response.getContentText());
+		return tokenData;
 	} catch (e) {
-	  log("FedEx OAuth 토큰 발급 중 오류 발생: " + e);
-	  return null;
+		log("FedEx OAuth 토큰 발급 중 오류 발생: " + e);
+		return null;
 	}
 }
 
@@ -102,10 +102,12 @@ function validataShipment(accessToken) {
 	}
 
 	// 배송검증 api
-	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
+	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
+	// log ("배송검증 API 호출 중");
 
 	// 배송 api
-	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+	log ("배송 API 호출 중");
 
 	var response = [];
 	for (var i = 0; i < payloadOptionsArray.length; i++) {
@@ -113,7 +115,7 @@ function validataShipment(accessToken) {
 
 		try {
 			var responseData = UrlFetchApp.fetch(shipmentUrl, options);
-
+			log("배송 API 호출 성공: " + JSON.parse(responseData.getContentText()));
 			response.push(JSON.parse(responseData.getContentText()));
 		} catch (e) {
 			log("배송검증 API 호출 중 오류 발생: " + e);

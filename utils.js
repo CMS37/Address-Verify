@@ -13,7 +13,7 @@ function getBody(fedexData, accessToken, commodities) {
 		"requestedShipment": {
 			"shipDatestamp": date,
 			"pickupType": "USE_SCHEDULED_PICKUP",
-			"serviceType": "FEDEX_INTERNATIONAL_PRIORITY",
+			"serviceType": "FEDEX_INTERNATIONAL_CONNECT_PLUS", // AH열에 대한입력에따라 분기 필요? 현재   EC) FICP =  FEDEX_INTERNATIONAL_CONNECT_PLUS 고정 
 			"packagingType": "YOUR_PACKAGING",
 			"totalWeight": fedexData["Shipment Weight* (13)"],
 
@@ -155,7 +155,7 @@ function getBody(fedexData, accessToken, commodities) {
 				},
 				{
 					"customerReferenceType": "CUSTOMER_REFERENCE",
-					"value": "REFERENCE_IN_LABEL"
+					"value": fedexData["Transaction ID*"]
 				}],
 				"weight": {
 					"units": "KG",
@@ -181,6 +181,7 @@ function getBody(fedexData, accessToken, commodities) {
 		"muteHttpExceptions": true
 	};
 
+	// options.groupID = fedexData["Transaction ID*"];
 	// log("페이로드: " + JSON.stringify(payload, null, 2));
 
 	return options;

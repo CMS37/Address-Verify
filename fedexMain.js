@@ -16,5 +16,6 @@ function fedex() {
 	}
 
 	log("FedEx 통합 배송 검증 요청완료 후 응답 분석 중");
-	log(responseData);
+	log(responseData)
+	// fedexHandle(responseData);
 }
