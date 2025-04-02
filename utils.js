@@ -181,7 +181,7 @@ function getBody(fedexData, accessToken, commodities) {
 		"muteHttpExceptions": true
 	};
 
-	log("페이로드: " + JSON.stringify(payload, null, 2));
+	// log("페이로드: " + JSON.stringify(payload, null, 2));
 
 	return options;
 }

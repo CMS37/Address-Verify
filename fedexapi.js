@@ -89,6 +89,11 @@ function validataShipment(accessToken) {
 			// totalWeight += parseFloat(rowData["Commodity Unit Weight (16)"]);
 			totalCustomsValue += parseFloat(rowData["Unit Value* (15)"] * rowData["Qty* (7)"]);
 		}
+		log("배송 번호 : " + groupId);
+		log("수신인 이름 : " + fedexData["Recipient Contact Name* (35)"]);
+		log("상품 정보 : " + JSON.stringify(commodities));
+		log("총 세관 가치 : " + totalCustomsValue);
+
 
 		fedexData["Total Customs Value"] = totalCustomsValue;
 
@@ -97,18 +102,23 @@ function validataShipment(accessToken) {
 	}
 
 	// 배송검증 api
-	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
+	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
 
 	// 배송 api
-	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
 
-	try {
-		var response = UrlFetchApp.fetch(shipmentUrl, payloadOptionsArray[0]);
-		var responseData = JSON.parse(response.getContentText());
+	var response = [];
+	for (var i = 0; i < payloadOptionsArray.length; i++) {
+		var options = payloadOptionsArray[i];
 
-		return responseData;
-	} catch (e) {
-		log(e);
-		return null;
+		try {
+			var responseData = UrlFetchApp.fetch(shipmentUrl, options);
+
+			response.push(JSON.parse(responseData.getContentText()));
+		} catch (e) {
+			log("배송검증 API 호출 중 오류 발생: " + e);
+			response.push(null);
+		}
 	}
+	return response;
 }
