@@ -35,15 +35,65 @@ function validataShipment(accessToken) {
 	}
 
 	var headers = fedexSheet.getRange(1, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
-	var data = fedexSheet.getRange(4, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
-	var fedexData = {};
+	var dataRows = fedexSheet.getRange(4, 1, fedexSheet.getLastRow() - 3, fedexSheet.getLastColumn()).getValues();
+	var groups = {};
 
-	for (var i = 0; i < headers.length; i++) {
-		fedexData[headers[i].trim()] = data[i];
+	for (var i = 0; i < dataRows.length; i++) {
+		var row = dataRows[i];
+		var groupId = row[0];
+
+		if (!groups[groupId]) {
+			groups[groupId] = [];
+		}
+		groups[groupId].push(row);
 	}
-	if (!fedexData) {
-		log("페덱스 데이터가 없습니다.");
-		return null;
+
+	var payloadOptionsArray = [];
+
+	for (var groupId in groups) {
+		var groupRows = groups[groupId];
+
+		var fedexData = {};
+		for (var j = 0; j < headers.length; j++) {
+			fedexData[headers[j].trim()] = groupRows[0][j];
+		}
+
+		var commodities = [];
+		// var totalWeight = 0;
+		var totalCustomsValue = 0;
+
+		for (var k = 0; k < groupRows.length; k++) {
+			var rowData = {};
+			var row = groupRows[k];
+
+			for (var j = 0; j < headers.length; j++) {
+				rowData[headers[j].trim()] = row[j];
+			}
+
+			var commodity = {
+				"quantity": rowData["Qty* (7)"], //수량
+				"quantityUnits": "EA", //수량 단위
+				"countryOfManufacture": rowData["Country of Manufacture* (2)"], // 제조국
+				"description": rowData["Product Description* (148)"], // 상품 이름
+				"weight": {
+					"units": "KG", // 무게 단위
+					"value": rowData["Commodity Unit Weight (16)"] // 무게
+				},
+				"unitPrice": {
+					"amount": rowData["Unit Value* (15)"], // 세관 가치
+					"currency": "USD" // 통화
+				}
+			};
+
+			commodities.push(commodity);
+			// totalWeight += parseFloat(rowData["Commodity Unit Weight (16)"]);
+			totalCustomsValue += parseFloat(rowData["Unit Value* (15)"] * rowData["Qty* (7)"]);
+		}
+
+		fedexData["Total Customs Value"] = totalCustomsValue;
+
+		var payloadOptions = getBody(fedexData, accessToken, commodities);
+		payloadOptionsArray.push(payloadOptions);
 	}
 
 	// 배송검증 api
@@ -52,11 +102,8 @@ function validataShipment(accessToken) {
 	// 배송 api
 	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
 
-
-	var body = getBody(fedexData, accessToken);
-
 	try {
-		var response = UrlFetchApp.fetch(shipmentUrl, body);
+		var response = UrlFetchApp.fetch(shipmentUrl, payloadOptionsArray[0]);
 		var responseData = JSON.parse(response.getContentText());
 
 		return responseData;
