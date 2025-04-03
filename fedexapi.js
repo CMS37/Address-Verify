@@ -42,9 +42,14 @@ function validataShipment(accessToken) {
 		var row = dataRows[i];
 		var groupId = row[0];
 
+		if (!groupId) {
+			continue;
+		}
+
 		if (!groups[groupId]) {
 			groups[groupId] = [];
 		}
+
 		groups[groupId].push(row);
 	}
 
@@ -52,8 +57,8 @@ function validataShipment(accessToken) {
 
 	for (var groupId in groups) {
 		var groupRows = groups[groupId];
-
 		var fedexData = {};
+
 		for (var j = 0; j < headers.length; j++) {
 			fedexData[headers[j].trim()] = groupRows[0][j];
 		}
@@ -69,7 +74,6 @@ function validataShipment(accessToken) {
 			for (var j = 0; j < headers.length; j++) {
 				rowData[headers[j].trim()] = row[j];
 			}
-
 			var commodity = {
 				"quantity": rowData["Qty* (7)"], //수량
 				"quantityUnits": "EA", //수량 단위
@@ -102,11 +106,11 @@ function validataShipment(accessToken) {
 	}
 
 	// 배송검증 api
-	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
+	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
 	// log ("배송검증 API 호출 중");
 
 	// 배송 api
-	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
 	log ("배송 API 호출 중");
 
 	var response = [];
