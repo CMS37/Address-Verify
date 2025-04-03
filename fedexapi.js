@@ -126,7 +126,7 @@ function validataShipment(accessToken) {
 		try {
 			var httpResponse  = UrlFetchApp.fetch(shipmentUrl, options);
 
-			log("배송 API 호출 성공")
+			log((i + 1) + " 번째 배송 API 호출 성공")
 
 			var parsedResponse = JSON.parse(httpResponse.getContentText());
 			parsedResponse.groupId = options.groupId;
