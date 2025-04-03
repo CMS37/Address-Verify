@@ -74,6 +74,8 @@ function validataShipment(accessToken) {
 			for (var j = 0; j < headers.length; j++) {
 				rowData[headers[j].trim()] = row[j];
 			}
+
+			var value = roundToTwo(rowData["Unit Value* (15)"]);
 			var commodity = {
 				"quantity": rowData["Qty* (7)"], //수량
 				"quantityUnits": "EA", //수량 단위
@@ -84,15 +86,19 @@ function validataShipment(accessToken) {
 					"value": rowData["Commodity Unit Weight (16)"] // 무게
 				},
 				"unitPrice": {
-					"amount": rowData["Unit Value* (15)"], // 세관 가치
+					"amount": value, // 세관 가치
 					"currency": "USD" // 통화
 				}
 			};
 
 			commodities.push(commodity);
-			// totalWeight += parseFloat(rowData["Commodity Unit Weight (16)"]);
-			totalCustomsValue += parseFloat(rowData["Unit Value* (15)"] * rowData["Qty* (7)"]);
+			var commodityValue = parseFloat(value) * parseFloat(rowData["Qty* (7)"]);
+			totalCustomsValue += commodityValue;
 		}
+
+		// 총 세관 가치는 소수점 둘째자리까지 반올림
+		// totalCustomsValue = Math.round(totalCustomsValue * 100) / 100;
+
 		log("배송 번호 : " + groupId);
 		log("수신인 이름 : " + fedexData["Recipient Contact Name* (35)"]);
 		log("상품 정보 : " + JSON.stringify(commodities));
@@ -119,7 +125,7 @@ function validataShipment(accessToken) {
 
 		try {
 			var responseData = UrlFetchApp.fetch(shipmentUrl, options);
-			log("배송 API 호출 성공: " + JSON.parse(responseData.getContentText()));
+			log("배송 API 호출 성공")
 			response.push(JSON.parse(responseData.getContentText()));
 		} catch (e) {
 			log("배송검증 API 호출 중 오류 발생: " + e);

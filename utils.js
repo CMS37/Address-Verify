@@ -2,6 +2,10 @@ function log(string) {
   Logger.log(string);
 }
 
+function roundToTwo(num) {
+	return Math.round(num * 100) / 100;
+}
+
 function getBody(fedexData, accessToken, commodities) {
 
 	// 현재 날짜를 YYYY-MM-DD 형식으로 가져오기 -> 배송날짜 기입용
