@@ -93,21 +93,23 @@ function updateSheetWithResponse(addresses, responseData, sheet) {
 			var firstField = match.AVC.split("-")[0];
 
 			if (firstField && (firstField.charAt(0) === "U" || firstField.charAt(0) === "R")) {
+				log("주소 검증 실패");
 				isFail = true;
+				addrData[listIndex][0] = "Fail";
+				match = {};
 			}
 		}
 
-		if (isFail || !match) {
+		if (!match) {
+			log("주소 검증 실패");
 			addrData[listIndex][0] = "Fail";
-			Logger.log("주소 검증 실패");
-			Logger.log("Match: " + JSON.stringify(match));
-
+			match = {};
 		} else {
 			addrData[listIndex][0] = match.Address;
+		}
 
-			if (fedexSheet) {
-				recordFedex(match, sheet, rowIndex, fedexSheet);
-			}
+		if (fedexSheet) {
+			recordFedex(match, sheet, rowIndex, fedexSheet, isFail);
 		}
 	}
 	addrRange.setValues(addrData);

@@ -1,4 +1,4 @@
-function recordFedex(match, responseSheet, rowIndex, fedexSheet) {
+function recordFedex(match, responseSheet, rowIndex, fedexSheet, isFail) {
 	var fedexHeaders = fedexSheet.getRange(1, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
 	var responseHeaders = responseSheet.getRange(1, 1, 1, responseSheet.getLastColumn()).getValues()[0];
 	var telCol = responseHeaders.indexOf("Your Phone Number\n※Without country code") + 1;
@@ -12,11 +12,6 @@ function recordFedex(match, responseSheet, rowIndex, fedexSheet) {
 	if (mailCol > 0) {
 		mail = responseSheet.getRange(rowIndex, mailCol).getValue();
 	}
-	
-	// Logger.log("📦 FedEx 양식 시트에 주소 정보를 추가합니다.");
-	// Logger.log("📦 주소 정보: " + JSON.stringify(match));
-	// Logger.log("📦 전화번호: " + tel);
-	// Logger.log("📦 이메일: " + mail);
   
 	var fedexRow = [];
 
@@ -44,7 +39,9 @@ function recordFedex(match, responseSheet, rowIndex, fedexSheet) {
 			fedexRow.push(match.Country || "");
 			break;
 		case "Recipient Zip Code* (10)":
-			fedexRow.push(match.PostalCodePrimary || "");
+			var postal = match.PostalCodePrimary || "";
+			postal = postal.toString();
+			fedexRow.push("'" + postal);
 			break;
 		case "Receipient Tel #* (15)":
 			fedexRow.push(tel || "");
@@ -59,6 +56,13 @@ function recordFedex(match, responseSheet, rowIndex, fedexSheet) {
 	}
 	
 	fedexSheet.appendRow(fedexRow);
+
+	if (isFail) {
+		var lastRow = fedexSheet.getLastRow();
+		var colCount = fedexSheet.getLastColumn();
+		fedexSheet.getRange(lastRow, 1, 1, colCount).setBackground("#FF0000");
+	}
+
 	Logger.log("📦 FedEx 양식 시트에 주소 정보가 추가되었습니다.");
   }
   
