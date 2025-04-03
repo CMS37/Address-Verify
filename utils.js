@@ -185,8 +185,7 @@ function getBody(fedexData, accessToken, commodities) {
 		"muteHttpExceptions": true
 	};
 
-	// options.groupID = fedexData["Transaction ID*"];
-	// log("페이로드: " + JSON.stringify(payload, null, 2));
+	options.groupId = fedexData["Transaction ID*"];
 
 	return options;
 }

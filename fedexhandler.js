@@ -1,45 +1,68 @@
 function fedexHandler(responseData) {
+	var ss = SpreadsheetApp.getActiveSpreadsheet();
+	var fedexSheet = ss.getSheetByName("페덱스");
+
+	if (!fedexSheet) {
+		log("페덱스 시트를 찾을 수 없습니다.");
+		return;
+	}
+
+	var headers = fedexSheet.getRange(1, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
+  
 	for (var i = 0; i < responseData.length; i++) {
 		var resp = responseData[i];
+		var groupId = resp.groupId || "N/A";
 		var transactionId = resp.transactionId || "N/A";
 
-		var shipment = (resp.output && resp.output.transactionShipments && resp.output.transactionShipments.length > 0) ? resp.output.transactionShipments[0] : null;
+		// var fullOutput = JSON.stringify(resp, null, 2);
+		// var chunkSize = 4000;
+		// for (var i = 0; i < fullOutput.length; i += chunkSize) {
+		// 	log(fullOutput.substring(i, i + chunkSize));
+		// }
+		
+		log("배송 ID: " + groupId + ", 거래 ID: " + transactionId);
 
-		var trackingNumber = shipment && shipment.masterTrackingNumber ? shipment.masterTrackingNumber : "N/A";
-		var alerts = shipment && shipment.alerts ? shipment.alerts : [];
-		var errors = resp.errors || [];
-		log("거래 ID : " + transactionId);
-		log("배송 추적 번호 : " + trackingNumber);
-
-		if (alerts.length === 0 && errors.length === 0) {
-			log("배송 성공");
+		if(!resp.errors && !resp.output.alerts) {
+			log (groupId + " : 배송이 성공적으로 완료 되었습니다")
 			continue;
 		}
 
-		for (var j = 0; j < errors.length; j++) {
-			var error = errors[j];
-			log("오류 " + (j + 1) + ": Code: " + error.code + ", Message: " + error.message);
-			handleError(error.code);
-		}
-		for (var j = 0; j < alerts.length; j++) {
-			var alert = alerts[j];
-			log("알림 " + (j + 1) + ": Code: " + alert.code + ", Alert Type: " + alert.alertType + ", Message: " + alert.message);
-		}
-		// 응답 전문 보기
-		var fullOutput = JSON.stringify(resp, null, 2);
-		var chunkSize = 4000;
-		for (var i = 0; i < fullOutput.length; i += chunkSize) {
-			log(fullOutput.substring(i, i + chunkSize));
+		if (resp.errors) {
+			for (var j = 0; j < resp.errors.length; j++) {
+				var error = resp.errors[j];
+				log(groupId + " 오류코드 : " + error.code);
+				handleError(error.code, groupId, fedexSheet);
+			}
 		}
 	}
 }
-
-function handleError(errorCode) {
+	
+function handleError(errorCode, groupId, fedexSheet, headers) {
 	switch (errorCode) {
 		case "PHONENUMBER.TOO.LONG":
-			log("전화번호가 너무 깁니다.");
+			var telColIndex = headers.indexOf("Receipient Tel #* (15)") + 1;
+			var rowNum = getRowByGroupId(groupId, fedexSheet);
+			if (rowNum && telColIndex > 0) {
+				fedexSheet.getRange(rowNum, telColIndex).setBackground("#FF0000");
+			}
 			break;
 		default:
-			log("알 수 없는 오류: " + errorCode);
+			log(groupId + " : 알 수 없는 오류 발생 - 코드: " + errorCode);
+			break;
 	}
+}
+
+function handleAlerts(alerts, groupId, fedexSheet) {
+
+}
+
+function getRowByGroupId(groupId, sheet) {
+  var lastRow = sheet.getLastRow();
+  var data = sheet.getRange(1, 1, lastRow, 1).getValues();
+  for (var i = 0; i < data.length; i++) {
+	if (data[i][0] == groupId) {
+	  return i + 1;
+	}
+  }
+  return null;
 }

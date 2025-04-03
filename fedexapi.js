@@ -119,18 +119,23 @@ function validataShipment(accessToken) {
 	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
 	log ("배송 API 호출 중");
 
-	var response = [];
+	var responses = [];
 	for (var i = 0; i < payloadOptionsArray.length; i++) {
 		var options = payloadOptionsArray[i];
 
 		try {
-			var responseData = UrlFetchApp.fetch(shipmentUrl, options);
+			var httpResponse  = UrlFetchApp.fetch(shipmentUrl, options);
+
 			log("배송 API 호출 성공")
-			response.push(JSON.parse(responseData.getContentText()));
+
+			var parsedResponse = JSON.parse(httpResponse.getContentText());
+			parsedResponse.groupId = options.groupId;
+			responses.push(parsedResponse);
 		} catch (e) {
 			log("배송검증 API 호출 중 오류 발생: " + e);
-			response.push(null);
+			responses.push({ groupID: options.groupId, error: e.toString() });
 		}
 	}
-	return response;
+	log("모든 FedEx 배송요청 완료 후 응답 분석 중");
+	fedexHandler(responses);
 }
