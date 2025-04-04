@@ -41,8 +41,8 @@ const POSTALCODE_STATE_ERROR = {
 const BATCH_BACKGROUND_COLOR = "#FF0000"; // 배치 오류 시트의 배경색
 
 const queueBackgroundUpdate = (errorCode, groupId, headers, groupIdToRowMap, backgroundUpdates) => {
-	const rowNum = groupIdToRowMap.get(groupId);
-	if (!rowNum) return;
+	const rowNums = groupIdToRowMap.get(groupId);
+	if (!rowNums) return;
 
 	let columnsToUpdate = [];
 
@@ -79,7 +79,7 @@ const queueBackgroundUpdate = (errorCode, groupId, headers, groupIdToRowMap, bac
 		if (!backgroundUpdates[col]) {
 			backgroundUpdates[col] = new Set();
 		}
-		backgroundUpdates[col].add(rowNum);
+		rowNums.forEach(rowNum => backgroundUpdates[col].add(rowNum));
 	});
 };
 
@@ -107,7 +107,11 @@ const fedexHandler = (responseData, sheet, headers, groupIdData) => {
 	const groupIdToRowMap = new Map();
 	groupIdData.forEach((row, index) => {
 		if (row[0]) {
-			groupIdToRowMap.set(row[0], index + 1);
+			if (groupIdToRowMap.has(row[0])) {
+				groupIdToRowMap.get(row[0]).push(index + 1);
+			} else {
+				groupIdToRowMap.set(row[0], [index + 1]);
+			}
 		}
 	});
 	
