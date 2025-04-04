@@ -82,15 +82,12 @@ const validataShipment = (accessToken) => {
 			totalCustomsValue += parseFloat(value) * parseFloat(rowData["Qty* (7)"]);
 	  });
 	  
-	  log(`배송 번호 : ${groupId}`);
-	  log(`수신인 이름 : ${fedexData["Recipient Contact Name* (35)"]}`);
-	  log(`상품 정보 : ${JSON.stringify(commodities)}`);
-	  log(`총 세관 가치 : ${totalCustomsValue}`);
-	  
-	  fedexData["Total Customs Value"] = totalCustomsValue;
-	  const payloadOptions = getBody(fedexData, accessToken, commodities);
-	  payloadOptions.url = shipmentUrl;
-	  payloadOptionsArray.push(payloadOptions);
+		log(`배송 번호 : ${groupId} 수신인 이름 : ${fedexData["Recipient Contact Name* (35)"]} 총 세관 가치 : ${totalCustomsValue}`);
+		
+		fedexData["Total Customs Value"] = totalCustomsValue;
+		const payloadOptions = getBody(fedexData, accessToken, commodities);
+		payloadOptions.url = shipmentUrl;
+		payloadOptionsArray.push(payloadOptions);
 	}
 
 	log("배송 API 호출 중");
@@ -101,15 +98,14 @@ const validataShipment = (accessToken) => {
 	for (let i = 0; i < payloadOptionsArray.length; i += BATCH_SIZE) {
 		const batch = payloadOptionsArray.slice(i, i + BATCH_SIZE);
 		try {
-		  const results = UrlFetchApp.fetchAll(batch);
-		  results.forEach((result, j) => {
-			log(`${i + j + 1} 번째 배송 API 호출 성공`);
-			const parsedResponse = JSON.parse(result.getContentText());
-			parsedResponse.groupId = batch[j].groupId;
-			responses.push(parsedResponse);
-		  });
+			const results = UrlFetchApp.fetchAll(batch);
+			results.forEach((result, j) => {
+				const parsedResponse = JSON.parse(result.getContentText());
+				parsedResponse.groupId = batch[j].groupId;
+				responses.push(parsedResponse);
+			});
 		} catch (e) {
-		  log(`배치 ${i + 1} 부터 호출 중 오류 발생: ${e}`);
+			log(`배치 ${i + 1} 부터 호출 중 오류 발생: ${e}`);
 		}
 		Utilities.sleep(500); // 0.5초 대기
 	}
