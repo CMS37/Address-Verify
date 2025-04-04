@@ -100,29 +100,20 @@ const updateBatchBackgrounds = (sheet, backgroundUpdates) => {
 	});
 };
 
-const fedexHandler = (responseData) => {
-	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	const sheet = ss.getSheetByName("페덱스");
-
+const fedexHandler = (responseData, sheet, headers, groupIdData) => {
 	if (!sheet) {
 		log("페덱스 시트를 찾을 수 없습니다.");
 		return;
 	}
 
-	const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-
-	// 첫 번째 열에서 그룹 ID를 읽어와 매핑 생성 (groupId -> 행 번호)
-	const lastRow = sheet.getLastRow();
-	const groupIdData = sheet.getRange(1, 1, lastRow, 1).getValues();
 	const groupIdToRowMap = new Map();
 	groupIdData.forEach((row, index) => {
 		if (row[0]) {
 			groupIdToRowMap.set(row[0], index + 1);
 		}
 	});
-
-	// 각 오류 발생 시 업데이트할 셀을 배치로 모으기 위한 객체
-	const backgroundUpdates = {}; // key: 열 인덱스, value: Set(행 번호)
+	
+	const backgroundUpdates = {};
 
 	responseData.forEach(resp => {
 		const groupId = resp.groupId || "N/A";
@@ -130,17 +121,17 @@ const fedexHandler = (responseData) => {
 		log(`배송 ID: ${groupId}, 거래 ID: ${transactionId}`);
 		
 		if (!resp.errors && !(resp.output && resp.output.alerts)) {
-		log(`${groupId} : 배송이 성공적으로 완료 되었습니다`);
-		return;
+			log(`${groupId} : 배송이 성공적으로 완료 되었습니다`);
+			return;
 		}
 		
 		if (resp.errors) {
-		resp.errors.forEach(error => {
-			log(`${groupId} 오류코드 : ${error.code}`);
-			queueBackgroundUpdate(error.code, groupId, headers, groupIdToRowMap, backgroundUpdates);
-		});
+			resp.errors.forEach(error => {
+				log(`${groupId} 오류코드 : ${error.code}`);
+				queueBackgroundUpdate(error.code, groupId, headers, groupIdToRowMap, backgroundUpdates);
+			});
 		}
 	});
-
+	
 	updateBatchBackgrounds(sheet, backgroundUpdates);
 };
