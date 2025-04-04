@@ -3,6 +3,11 @@ const getFedExOAuthToken = () => {
 	const clientId = scriptProperties.getProperty("FEDEX_CLIENT_ID");
 	const clientSecret = scriptProperties.getProperty("FEDEX_CLIENT_SECRET");
 
+	if (!clientId || !clientSecret) {
+		log("스크립트 속성에서 FEDEX_CLIENT_ID 또는 FEDEX_CLIENT_SECRET 찾을 수 없습니다.");
+		return null;
+	}
+
 	const grantType = "client_credentials";
 	const tokenUrl = "https://apis-sandbox.fedex.com/oauth/token";
 	const payload = `grant_type=${encodeURIComponent(grantType)}&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`;
