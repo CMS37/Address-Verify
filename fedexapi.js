@@ -1,141 +1,112 @@
-function getFedExOAuthToken() {
-	var grantType = "client_credentials"
-	var clientId = "l7b543253d524c449e8588a7c12941a57d";
-	var clientSecret = "b37fd2fa1c9147b0a277a339cfb227ac";
+const getFedExOAuthToken = () => {
+	const grantType = "client_credentials";
+	const clientId = "l7b543253d524c449e8588a7c12941a57d";
+	const clientSecret = "b37fd2fa1c9147b0a277a339cfb227ac";
+	const tokenUrl = "https://apis-sandbox.fedex.com/oauth/token";
 
-	var tokenUrl = "https://apis-sandbox.fedex.com/oauth/token";
-
-	var payload = "grant_type=" + encodeURIComponent(grantType) +
-				  "&client_id=" + encodeURIComponent(clientId) +
-				  "&client_secret=" + encodeURIComponent(clientSecret);
-	
-	var options = {
-		"method": "post",
-		"contentType": "application/x-www-form-urlencoded",
-		"payload": payload
+	const payload = `grant_type=${encodeURIComponent(grantType)}&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`;
+	const options = {
+		method: "post",
+		contentType: "application/x-www-form-urlencoded",
+		payload
 	};
-	
+
 	try {
-		var response = UrlFetchApp.fetch(tokenUrl, options);
-		var tokenData = JSON.parse(response.getContentText());
-		return tokenData;
+		const response = UrlFetchApp.fetch(tokenUrl, options);
+		return JSON.parse(response.getContentText());
 	} catch (e) {
-		log("FedEx OAuth 토큰 발급 중 오류 발생: " + e);
+		log(`FedEx OAuth 토큰 발급 중 오류 발생: ${e}`);
 		return null;
 	}
-}
+};
 
-function validataShipment(accessToken) {
-	var ss = SpreadsheetApp.getActiveSpreadsheet();
-	var fedexSheet = ss.getSheetByName("페덱스");
+const validataShipment = (accessToken) => {
+	const ss = SpreadsheetApp.getActiveSpreadsheet();
+	const fedexSheet = ss.getSheetByName("페덱스");
 
 	if (!fedexSheet) {
 		log("페덱스 시트를 찾을 수 없습니다.");
 		return null;
 	}
 
-	var headers = fedexSheet.getRange(1, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
-	var dataRows = fedexSheet.getRange(4, 1, fedexSheet.getLastRow() - 3, fedexSheet.getLastColumn()).getValues();
-	var groups = {};
+	const headers = fedexSheet.getRange(1, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
+	const dataRows = fedexSheet.getRange(4, 1, fedexSheet.getLastRow() - 3, fedexSheet.getLastColumn()).getValues();
+	const groups = {};
 
-	for (var i = 0; i < dataRows.length; i++) {
-		var row = dataRows[i];
-		var groupId = row[0];
-
-		if (!groupId) {
-			continue;
-		}
-
-		if (!groups[groupId]) {
-			groups[groupId] = [];
-		}
-
+	dataRows.forEach(row => {
+		const groupId = row[0];
+		if (!groupId) return;
+		groups[groupId] = groups[groupId] || [];
 		groups[groupId].push(row);
-	}
+	});
 
-	var payloadOptionsArray = [];
+	const payloadOptionsArray = [];
+	for (const groupId in groups) {
+		const groupRows = groups[groupId];
+		const fedexData = {};
 
-	for (var groupId in groups) {
-		var groupRows = groups[groupId];
-		var fedexData = {};
+		headers.forEach((header, j) => {
+			fedexData[header.trim()] = groupRows[0][j];
+		});
 
-		for (var j = 0; j < headers.length; j++) {
-			fedexData[headers[j].trim()] = groupRows[0][j];
-		}
+		const commodities = [];
+		let totalCustomsValue = 0;
 
-		var commodities = [];
-		// var totalWeight = 0;
-		var totalCustomsValue = 0;
+		groupRows.forEach(row => {
+			const rowData = {};
 
-		for (var k = 0; k < groupRows.length; k++) {
-			var rowData = {};
-			var row = groupRows[k];
+			headers.forEach((header, j) => {
+				rowData[header.trim()] = row[j];
+			});
 
-			for (var j = 0; j < headers.length; j++) {
-				rowData[headers[j].trim()] = row[j];
-			}
-
-			var value = roundToTwo(rowData["Unit Value* (15)"]);
-			var commodity = {
-				"quantity": rowData["Qty* (7)"], //수량
-				"quantityUnits": "EA", //수량 단위
-				"countryOfManufacture": rowData["Country of Manufacture* (2)"], // 제조국
-				"description": rowData["Product Description* (148)"], // 상품 이름
-				"weight": {
-					"units": "KG", // 무게 단위
-					"value": rowData["Commodity Unit Weight (16)"] // 무게
+			const value = roundToTwo(rowData["Unit Value* (15)"]);
+			const commodity = {
+				quantity: rowData["Qty* (7)"],
+				quantityUnits: "EA",
+				countryOfManufacture: rowData["Country of Manufacture* (2)"],
+				description: rowData["Product Description* (148)"],
+				weight: {
+					units: "KG",
+					value: rowData["Commodity Unit Weight (16)"]
 				},
-				"unitPrice": {
-					"amount": value, // 세관 가치
-					"currency": "USD" // 통화
+				unitPrice: {
+					amount: value,
+					currency: "USD"
 				}
 			};
 
 			commodities.push(commodity);
-			var commodityValue = parseFloat(value) * parseFloat(rowData["Qty* (7)"]);
-			totalCustomsValue += commodityValue;
-		}
+			totalCustomsValue += parseFloat(value) * parseFloat(rowData["Qty* (7)"]);
+		});
 
-		// 총 세관 가치는 소수점 둘째자리까지 반올림
-		// totalCustomsValue = Math.round(totalCustomsValue * 100) / 100;
-
-		log("배송 번호 : " + groupId);
-		log("수신인 이름 : " + fedexData["Recipient Contact Name* (35)"]);
-		log("상품 정보 : " + JSON.stringify(commodities));
-		log("총 세관 가치 : " + totalCustomsValue);
-
+		log(`배송 번호 : ${groupId}`);
+		log(`수신인 이름 : ${fedexData["Recipient Contact Name* (35)"]}`);
+		log(`상품 정보 : ${JSON.stringify(commodities)}`);
+		log(`총 세관 가치 : ${totalCustomsValue}`);
 
 		fedexData["Total Customs Value"] = totalCustomsValue;
-
-		var payloadOptions = getBody(fedexData, accessToken, commodities);
+		const payloadOptions = getBody(fedexData, accessToken, commodities);
 		payloadOptionsArray.push(payloadOptions);
 	}
 
-	// 배송검증 api
-	// var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments/packages/validate";
-	// log ("배송검증 API 호출 중");
+	const shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+	log("배송 API 호출 중");
 
-	// 배송 api
-	var shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
-	log ("배송 API 호출 중");
+	const responses = [];
 
-	var responses = [];
-	for (var i = 0; i < payloadOptionsArray.length; i++) {
-		var options = payloadOptionsArray[i];
-
+	payloadOptionsArray.forEach((options, i) => {
 		try {
-			var httpResponse  = UrlFetchApp.fetch(shipmentUrl, options);
-
-			log((i + 1) + " 번째 배송 API 호출 성공")
-
-			var parsedResponse = JSON.parse(httpResponse.getContentText());
+			const httpResponse = UrlFetchApp.fetch(shipmentUrl, options);
+			log(`${i + 1} 번째 배송 API 호출 성공`);
+			const parsedResponse = JSON.parse(httpResponse.getContentText());
 			parsedResponse.groupId = options.groupId;
 			responses.push(parsedResponse);
 		} catch (e) {
-			log("배송검증 API 호출 중 오류 발생: " + e);
+		log(`배송검증 API 호출 중 오류 발생: ${e}`);
 			responses.push({ groupID: options.groupId, error: e.toString() });
 		}
-	}
+	});
+
 	log("모든 FedEx 배송요청 완료 후 응답 분석 중");
 	fedexHandler(responses);
-}
+};
