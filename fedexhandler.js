@@ -40,7 +40,6 @@ const POSTALCODE_STATE_ERROR = {
 
 const BATCH_BACKGROUND_COLOR = "#FF0000"; // 배치 오류 시트의 배경색
 
-// 각 오류에 대해 업데이트할 셀의 정보를 배치로 저장
 const queueBackgroundUpdate = (errorCode, groupId, headers, groupIdToRowMap, backgroundUpdates) => {
 	const rowNum = groupIdToRowMap.get(groupId);
 	if (!rowNum) return;
@@ -84,7 +83,6 @@ const queueBackgroundUpdate = (errorCode, groupId, headers, groupIdToRowMap, bac
 	});
 };
 
-// 배치로 모은 업데이트 정보를 한 번에 반영
 const updateBatchBackgrounds = (sheet, backgroundUpdates) => {
 	const lastRow = sheet.getLastRow();
 	Object.keys(backgroundUpdates).forEach(colStr => {
