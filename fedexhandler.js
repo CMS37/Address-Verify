@@ -121,6 +121,8 @@ const fedexHandler = (responseData, sheet, headers, groupIdData) => {
 		const groupId = resp.groupId || "N/A";
 		const transactionId = resp.transactionId || "N/A";
 		log(`배송 ID: ${groupId}, 거래 ID: ${transactionId}`);
+
+		log(`응답 내용 : ${JSON.stringify(resp)}`);
 		
 		if (!resp.errors && !(resp.output && resp.output.alerts)) {
 			log(`${groupId} : 배송이 성공적으로 완료 되었습니다`);

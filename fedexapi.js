@@ -9,7 +9,8 @@ const getFedExOAuthToken = () => {
 	}
 
 	const grantType = "client_credentials";
-	const tokenUrl = "https://apis-sandbox.fedex.com/oauth/token";
+	const tokenUrl = "https://apis.fedex.com/oauth/token";
+	// const tokenUrl = "https://apis-sandbox.fedex.com/oauth/token";
 	const payload = `grant_type=${encodeURIComponent(grantType)}&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`;
 
 	const options = {
@@ -49,7 +50,8 @@ const validataShipment = (accessToken) => {
 		groups[groupId].push(row);
 	});
 
-	const shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
+	const shipmentUrl = "https://apis.fedex.com/ship/v1/shipments";
+	// const shipmentUrl = "https://apis-sandbox.fedex.com/ship/v1/shipments";
 	const payloadOptionsArray = [];
 
 	for (const groupId in groups) {
