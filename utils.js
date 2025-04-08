@@ -2,9 +2,32 @@ const log = (message) => Logger.log(message);
 
 const roundToTwo = (num) => Math.round(num * 100) / 100;
 
-const getBody = (fedexData, accessToken, commodities) => {
+const getMainData = (mainsheet) => {
+	const mainData = {
+		accountNumber: mainsheet.getRange("고객번호").getValue(),
+		city: mainsheet.getRange("도시").getValue(),
+		address1: mainsheet.getRange("주소1").getValue(),
+		address2: mainsheet.getRange("주소2").getValue(),
+		postalCode: mainsheet.getRange("우편번호").getValue(),
+		email: mainsheet.getRange("이메일").getValue(),
+		phone: mainsheet.getRange("전화번호").getValue(),
+		companyName: mainsheet.getRange("회사명").getValue(),
+		personName: mainsheet.getRange("사람명").getValue(),
+		shipperTinsNumber: mainsheet.getRange("발송인세금번호").getValue(),
+		shipperTinsType: mainsheet.getRange("발송인세금타입").getValue(),
+		recipientTinsNumber: mainsheet.getRange("수신인세금번호").getValue(),
+		recipientTinsType: mainsheet.getRange("수신인세금타입").getValue(),
+		labelFormatType: mainsheet.getRange("라벨용지타입").getValue(),
+		labelStockType: mainsheet.getRange("라벨저장타입").getValue(),
+		imageType: mainsheet.getRange("이미지타입").getValue(),
+	}
+
+	return mainData;
+}
+
+const getBody = (mainData, fedexData, accessToken, commodities) => {
 	const date = new Date().toISOString().slice(0, 10);
-	
+
 	const payload = {
 		mergeLabelDocOption: "LABELS_AND_DOCS",
 		labelResponseOptions: "URL_ONLY",
@@ -16,23 +39,26 @@ const getBody = (fedexData, accessToken, commodities) => {
 			totalWeight: fedexData["Shipment Weight* (13)"],
 			shipper: {
 				address: {
-					streetLines: ["SENDER_ADD_1", "SENDER_ADD_2"],
-					city: "Sasdfeoul-Si",
+					streetLines: [
+						mainData.address1,
+						mainData.address2,
+					],
+					city: "GYEONGGIDO",
 					stateOrProvinceCode: "",
-					postalCode: "04027",
+					postalCode: mainData.postalCode,
 					countryCode: "KR",
 					residential: false
 				},
 				contact: {
-					personName: "SENDER_CONTACT_NAME",
-					emailAddress: "testtest",
+					personName: mainData.personName,
+					emailAddress: mainData.email,
 					phoneExtension: "",
-					phoneNumber: "1234567890",
-					companyName: "SENDER_COMPANY_NAME"
+					phoneNumber: mainData.phone,
+					companyName: mainData.companyName
 				},
 				tins: [{
-					number: "KR123456789012(16)",
-					tinType: "BUSINESS_UNION"
+					number: mainData.shipperTinsNumber,
+					tinType: mainData.shipperTinsType
 				}]
 			},
 			recipients: [{
@@ -55,8 +81,8 @@ const getBody = (fedexData, accessToken, commodities) => {
 					companyName: fedexData["Recipient Company Name (35)"]
 				},
 				tins: [{
-					number: "KR123456789012(16)",
-					tinType: "BUSINESS_UNION"
+					number: mainData.recipientTinsNumber,
+					tinType: mainData.recipientTinsType
 				}],
 				deliveryInstructions: "DELIVERY INSTRUCTIONS"
 			}],
@@ -64,7 +90,7 @@ const getBody = (fedexData, accessToken, commodities) => {
 				paymentType: "SENDER",
 				payor: {
 					responsibleParty: {
-						accountNumber: { value: "740561073" }
+						accountNumber: { value: mainData.accountNumber },
 					}
 				}
 			},
@@ -78,7 +104,7 @@ const getBody = (fedexData, accessToken, commodities) => {
 				dutiesPayment: {
 					payor: {
 						responsibleParty: {
-							accountNumber: { value: "740561073" }
+							accountNumber: { value: mainData.accountNumber },
 						}
 					},
 					paymentType: "SENDER"
@@ -91,9 +117,9 @@ const getBody = (fedexData, accessToken, commodities) => {
 				}
 			},
 			labelSpecification: {
-				labelFormatType: "COMMON2D",
-				labelStockType: "STOCK_4X675_TRAILING_DOC_TAB",
-				imageType: "ZPLII"
+				labelFormatType: mainData.labelFormatType,
+				labelStockType: mainData.labelStockType,
+				imageType: mainData.imageType,
 			},
 			shippingDocumentSpecification: {
 				shippingDocumentTypes: ["COMMERCIAL_INVOICE"],
@@ -131,7 +157,7 @@ const getBody = (fedexData, accessToken, commodities) => {
 				}
 			}]
 		},
-		accountNumber: { value: "740561073" }
+		accountNumber: { value: mainData.accountNumber },
 	};
 	
 	const options = {

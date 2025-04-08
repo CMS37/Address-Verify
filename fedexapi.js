@@ -31,12 +31,13 @@ const getFedExOAuthToken = () => {
 const validataShipment = (accessToken) => {
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
 	const fedexSheet = ss.getSheetByName("페덱스");
+	const mainSheet = ss.getSheetByName("메인");
 	
-	if (!fedexSheet) {
-		log("페덱스 시트를 찾을 수 없습니다.");
+	if (!fedexSheet || !mainSheet) {
+		log("페덱스 시트 또는 메인 시트를 찾을 수 없습니다.");
 		return null;
 	}
-
+	const mainData = getMainData(mainSheet);
 	const headers = fedexSheet.getRange(1, 1, 1, fedexSheet.getLastColumn()).getValues()[0];
 	const groupIdData = fedexSheet.getRange(1, 1, fedexSheet.getLastRow(), 1).getValues();
 	
@@ -92,7 +93,7 @@ const validataShipment = (accessToken) => {
 		log(`배송 번호 : ${groupId} 수신인 이름 : ${fedexData["Recipient Contact Name* (35)"]} 총 세관 가치 : ${totalCustomsValue}`);
 		
 		fedexData["Total Customs Value"] = totalCustomsValue;
-		const payloadOptions = getBody(fedexData, accessToken, commodities);
+		const payloadOptions = getBody(mainData, fedexData, accessToken, commodities);
 		payloadOptions.url = shipmentUrl;
 		payloadOptionsArray.push(payloadOptions);
 	}
