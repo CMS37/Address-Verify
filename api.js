@@ -6,42 +6,50 @@ const callApi = (addresses, sheet) => {
 	}
 
 	const baseUrl = "https://api.addressy.com/Cleansing/International/Batch/v1.00/json4.ws";
-	const requestData = addresses.map(address => ({
-		Country: address.country,
-		Address1: address.address,
-		PostalCode: address.postalCode,
-		Locality: address.city,
-		AdministrativeArea: address.state
+
+	const payloadAddresses = addresses.map(addr => ({
+		Country: addr.country,
+		Address1: addr.address,
+		PostalCode: addr.postalCode,
+		Locality: addr.city,
+		AdministrativeArea: addr.state
 	}));
 
 	const payload = {
 		Key: apiKey,
-		Options: {
-			Certify: true,
-		},
-		Addresses: requestData
+		Options: { Certify: true },
+		Addresses: payloadAddresses
 	};
-  
+
 	const options = {
 		method: "post",
 		contentType: "application/json",
-		payload: JSON.stringify(payload)
+		payload: JSON.stringify(payload),
 	};
-  
-	log(`API Request Options: ${JSON.stringify(options)}`);
-	
+
 	try {
 		const response = UrlFetchApp.fetch(baseUrl, options);
-		const responseData = JSON.parse(response.getContentText());
-		log(`API 호출 성공, 응답: ${JSON.stringify(responseData)}`);
-		return updateSheetWithResponse(addresses, responseData, sheet);
+		const apiResponse = JSON.parse(response.getContentText());
+
+		if (Array.isArray(apiResponse) && apiResponse.length === payloadAddresses.length) {
+			addresses.forEach((addr, i) => {
+				addr.response = apiResponse[i];
+			});
+		} else {
+			log("API 응답이 예상한 길이와 일치하지 않습니다.");
+		}
+
+		log("API 호출 성공");
 	} catch (e) {
 		log(`API 호출 중 오류 발생: ${e}`);
 	}
-  };
-  
-  const updateSheetWithResponse = (addresses, responseData, sheet) => {
-	if (!Array.isArray(responseData) || responseData.length === 0) {
+
+	updateSheetWithResponse(addresses, sheet);
+};
+
+
+const updateSheetWithResponse = (addresses, responseData, sheet) => {
+	if (!Array.isArray(responseData) || !responseData.Matches.AQI) {
 		log("API 응답이 비어 있습니다.");
 		return;
 	}
