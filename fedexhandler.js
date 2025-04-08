@@ -1,4 +1,5 @@
 const PHONENUMBER_ERROR = {
+	"PHONENUMBER.EMPTY": true, // 전화 번호가 비어 있습니다.
 	"PHONENUMBER.TOO.LONG": true, // 전화 번호가 너무 깁니다.
 	"PHONENUMBER.TOO.SHORT": true, // 전화 번호가 너무 짧습니다.
 	"PHONE.NUMBER.INVALID": true, // 전화번호가 유효하지 않습니다. 업데이트 후 다시 시도하십시오.
@@ -19,6 +20,7 @@ const EMAIL_ERROR = {
 const POSTALCODE_ERROR = {
 	"COUNTRY.POSTALCODEORZIP.INVALID" : true, // 선택한 국가에 대한 우편 번호가 잘못되었습니다. 수정 후 다시 시도하십시오.
 	"IMPORTEROFRECORD.POSTALCODE.INVALID": true, // 우편번호가 잘못되었습니다. 업데이트 후 다시 시도하십시오.
+	"IMPORTEROFRECORD.POSTALCODE.REQUIRED": true, // 우편번호는 필수입니다. 업데이트 후 다시 시도하십시오.
 }
 
 const ADDRESS_ERROR = {
@@ -28,6 +30,19 @@ const ADDRESS_ERROR = {
 const NAME_ERROR = {
 	"PERSONNAME.TOO.LONG": true, // 사람 이름이 너무 깁니다.
 	"PERSONNAME.AND.CONTACTNAME.EMPTY": true, // 수취인 이름과 연락처 이름이 비어 있습니다.
+}
+
+const CITY_ERROR = {
+	"CITY.EMPTY": true, // 도시가 비어 있습니다.
+}
+
+const STATE_ERROR = {
+	"RECIPIENTS.STATEORPROVINCECODE.INVALID": true, // 주/도 코드가 잘못되었습니다.
+	"STATEORPROVINCE.CODE.INVALID": true, // 주/도 코드가 잘못되었습니다.
+}
+
+const COUNTRY_ERROR = {
+	"RECIPIENT.COUNTRY.INVALID": true, // 수취인 국가가 잘못되었습니다.
 }
 
 const ADDRESS_STATE_ERROR = {
@@ -61,6 +76,15 @@ const queueBackgroundUpdate = (errorCode, groupId, headers, groupIdToRowMap, bac
 	} else if (NAME_ERROR[errorCode]) {
 		const nameCol = headers.indexOf("Recipient Contact Name* (35)") + 1;
 		if (nameCol > 0) columnsToUpdate.push(nameCol);
+	} else if (CITY_ERROR[errorCode]) {
+		const cityCol = headers.indexOf("Recipient City* (35)") + 1;
+		if (cityCol > 0) columnsToUpdate.push(cityCol);
+	} else if (STATE_ERROR[errorCode]) {
+		const stateCol = headers.indexOf("State code") + 1;
+		if (stateCol > 0) columnsToUpdate.push(stateCol);
+	} else if (COUNTRY_ERROR[errorCode]) {
+		const countryCol = headers.indexOf("Recipient Country Code* (2)") + 1;
+		if (countryCol > 0) columnsToUpdate.push(countryCol);
 	} else if (ADDRESS_STATE_ERROR[errorCode]) {
 		const addressCol = headers.indexOf("Recipient Address Line 1* (35)") + 1;
 		const stateCol = headers.indexOf("State code") + 1;

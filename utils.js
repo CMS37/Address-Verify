@@ -80,10 +80,10 @@ const getBody = (mainData, fedexData, accessToken, commodities) => {
 					phoneNumber: fedexData["Receipient Tel #* (15)"],
 					companyName: fedexData["Recipient Company Name (35)"]
 				},
-				tins: [{
-					number: mainData.recipientTinsNumber,
-					tinType: mainData.recipientTinsType
-				}],
+				// tins: [{
+				// 	number: mainData.recipientTinsNumber,
+				// 	tinType: mainData.recipientTinsType
+				// }],
 				deliveryInstructions: "DELIVERY INSTRUCTIONS"
 			}],
 			shippingChargesPayment: {
@@ -110,7 +110,7 @@ const getBody = (mainData, fedexData, accessToken, commodities) => {
 					paymentType: "SENDER"
 				},
 				commodities,
-				isDocumentOnly: false,
+				// isDocumentOnly: false,
 				totalCustomsValue: {
 					amount: fedexData["Total Customs Value"],
 					currency: "USD"
@@ -124,15 +124,15 @@ const getBody = (mainData, fedexData, accessToken, commodities) => {
 			shippingDocumentSpecification: {
 				shippingDocumentTypes: ["COMMERCIAL_INVOICE"],
 				commercialInvoiceDetail: {
-					customerImageUsages: [{
-						id: "IMAGE_1",
-						type: "LETTER_HEAD",
-						providedImageType: "LETTER_HEAD"
-					}, {
-						id: "IMAGE_2",
-						type: "SIGNATURE",
-						providedImageType: "SIGNATURE"
-					}],
+					// customerImageUsages: [{
+					// 	id: "IMAGE_1",
+					// 	type: "LETTER_HEAD",
+					// 	providedImageType: "LETTER_HEAD"
+					// }, {
+					// 	id: "IMAGE_2",
+					// 	type: "SIGNATURE",
+					// 	providedImageType: "SIGNATURE"
+					// }],
 					documentFormat: {
 						provideInstructions: true,
 						stockType: "PAPER_LETTER",
@@ -144,13 +144,13 @@ const getBody = (mainData, fedexData, accessToken, commodities) => {
 			preferredCurrency: "USD",
 			requestedPackageLineItems: [{
 				groupPackageCount: 1,
-				customerReferences: [{
-					customerReferenceType: "INVOICE_NUMBER",
-					value: "INV_NUM_IN_LABEL"
-				}, {
-					customerReferenceType: "CUSTOMER_REFERENCE",
-					value: fedexData["Transaction ID*"]
-				}],
+				// customerReferences: [{
+				// 	customerReferenceType: "INVOICE_NUMBER",
+				// 	value: "INV_NUM_IN_LABEL"
+				// }, {
+				// 	customerReferenceType: "CUSTOMER_REFERENCE",
+				// 	value: fedexData["Transaction ID*"]
+				// }],
 				weight: {
 					units: "KG",
 					value: fedexData["Shipment Weight* (13)"]
