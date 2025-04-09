@@ -96,16 +96,9 @@ const updateSheetWithResponse = (addresses, sheet) => {
 		const startRow = fedexSheet.getLastRow() + 1;
 		const numCols = fedexRowsToAppend[0].length;
 		fedexSheet.getRange(startRow, 1, fedexRowsToAppend.length, numCols).setValues(fedexRowsToAppend);
-		
-		fedexRowsToAppend.forEach((row, index) => {
-			if (rowContainsFail(row)) {
-			fedexSheet.getRange(startRow + index, 1, 1, numCols).setBackground("#FF0000");
-			}
-		});
 	}
 };
-  
-  
+
 const findHeader = (sheet, headerName) => {
 	const lastCol = sheet.getLastColumn();
 	const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
@@ -117,4 +110,3 @@ const findHeader = (sheet, headerName) => {
 	}
 	return colIndex;
 };
-  
