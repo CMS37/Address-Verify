@@ -30,14 +30,9 @@ const callApi = (addresses, sheet) => {
 	try {
 		const response = UrlFetchApp.fetch(baseUrl, options);
 		const apiResponse = JSON.parse(response.getContentText());
-
-		if (Array.isArray(apiResponse) && apiResponse.length === payloadAddresses.length) {
-			addresses.forEach((addr, i) => {
-				addr.response = apiResponse[i];
-			});
-		} else {
-			log("API 응답이 예상한 길이와 일치하지 않습니다.");
-		}
+		addresses.forEach((addr, i) => {
+			addr.response = apiResponse[i];
+		});
 
 		log("API 호출 성공");
 	} catch (e) {
@@ -48,62 +43,68 @@ const callApi = (addresses, sheet) => {
 };
 
 
-const updateSheetWithResponse = (addresses, responseData, sheet) => {
-	if (!Array.isArray(responseData) || !responseData.Matches.AQI) {
-		log("API 응답이 비어 있습니다.");
-		return;
-	}
-  
+const updateSheetWithResponse = (addresses, sheet) => {
 	const addressCol = findHeader(sheet, "검증 주소");
 	const lastRow = sheet.getLastRow();
 	const numRows = lastRow - 1;
 	const addrRange = sheet.getRange(2, addressCol, numRows, 1);
 	const addrData = addrRange.getValues();
+	
 	const fedexSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("페덱스");
-  
 	if (!fedexSheet) {
 		log("페덱스 시트를 찾을 수 없습니다.");
 	}
-  
-	responseData.forEach((item, i) => {
-		const addrMeta = addresses[i];
-		if (!addrMeta) return;
+	
+	const fedexRowsToAppend = [];
+	
+	addresses.forEach((addr, i) => {
+		if (!addr) return;
 		
-		const rowIndex = addrMeta.rowIndex;
+		const rowIndex = addr.rowIndex;
 		const listIndex = rowIndex - 2;
 		let isFail = false;
-		let match = null;
-		
-		if (item.Matches && item.Matches.length > 0) {
-			match = item.Matches[0];
-		} else {
+
+		if (!addr.response) {
 			isFail = true;
-		}
-		
-		if (match && match.AVC) {
-			const firstField = match.AVC.split("-")[0];
-			if (firstField && (firstField.charAt(0) === "U" || firstField.charAt(0) === "R")) {
-				log("주소 검증 실패");
+			addrData[listIndex][0] = "Fail - 응답이 비어있음";
+			log(`행 ${rowIndex}: 주소 검증 실패 - 응답이 비어있음`);
+		} else {
+			const match = (addr.response.Matches && addr.response.Matches[0]) || null;
+
+			if (!match || !match.Address || match.Address.trim() === "") {
 				isFail = true;
-				addrData[listIndex][0] = "Fail";
-				match = {};
+				addrData[listIndex][0] = "Fail - 주소 정보가 없음";
+				log(`행 ${rowIndex}: 주소 검증 실패 - Matches에 주소 정보가 없음`);
+			} else if (match.AVC && (match.AVC.charAt(0) === "U" || match.AVC.charAt(0) === "R")) {
+				isFail = true;
+				addrData[listIndex][0] = "Fail - 검증등급이 U/R ";
+				log(`행 ${rowIndex}: 주소 검증 실패 - AVC가 "${match.AVC}" (U/R로 시작)`);
+			} else {
+				addrData[listIndex][0] = match.Address;
 			}
 		}
-	  
-		if (!match) {
-			log("주소 검증 실패");
-			addrData[listIndex][0] = "Fail";
-			match = {};
-		} else {
-			addrData[listIndex][0] = match.Address;
-		}
-	  
-		if (fedexSheet) {
-			recordFedex(match, sheet, rowIndex, fedexSheet, isFail);
+
+		if (fedexSheet && !isFail) {
+			const fedexRow = createFedexRow(addr.response.Matches[0], sheet, fedexSheet, rowIndex, isFail);
+			fedexRowsToAppend.push(fedexRow);
 		}
 	});
+
 	addrRange.setValues(addrData);
+
+	if (fedexSheet && fedexRowsToAppend.length > 0) {
+		const startRow = fedexSheet.getLastRow() + 1;
+		const numCols = fedexRowsToAppend[0].length;
+		fedexSheet.getRange(startRow, 1, fedexRowsToAppend.length, numCols).setValues(fedexRowsToAppend);
+		
+		fedexRowsToAppend.forEach((row, index) => {
+			if (rowContainsFail(row)) {
+			fedexSheet.getRange(startRow + index, 1, 1, numCols).setBackground("#FF0000");
+			}
+		});
+	}
 };
+  
   
 const findHeader = (sheet, headerName) => {
 	const lastCol = sheet.getLastColumn();
